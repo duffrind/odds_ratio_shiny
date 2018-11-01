@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1541081267804.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "328C6F1F",
+    "lastKnownWriteTime" : 1541081265,
+    "last_content_update" : 1541081265,
+    "path" : "~/ncf/practical/odds_ratio_shiny/app.R",
+    "project_path" : "app.R",
+    "properties" : {
+        "cursorPosition" : "8,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
