@@ -15,7 +15,7 @@
 /*.Rcheck/
 
 # RStudio files
-.Rproj.user/
+.Rproj.user/*
 
 # produced vignettes
 vignettes/*.html
@@ -37,3 +37,4 @@ rsconnect/
 
 # MacOS
 .DS_Store
+.Rproj.user
