@@ -1,0 +1,11 @@
+Patient ID,PatientName,BUN,Chloride,Creatinine,Glucose,Potassium,Sodium,CC,Outcome
+e806c8d7-2cb9-41ab-a123-f157f824a41c,Patient A,32.00,110.00,3.10,137.00,5.40,140.00,Kidney Disease,-1
+c91ac91f-621f-49ba-a5cc-aab35582055e,Patient B,44.00,101.00,5.30,415.00,5.70,139.00,Diabetes,-1
+fddc5a0f-2605-4797-904d-fb7bf9fd1c07,Patient C,21.00,103.00,0.80,152.00,4.70,141.00,Diabetes,-1
+0e78adee-2f2e-45a9-a8ac-f1e7d9cd9f37,Patient D,68.00,106.00,2.90,148.00,4.90,139.00,COPD,-1
+e372e420-63fd-4160-90f3-b923551b12e5,Patient E,140.00,114.00,3.50,195.00,5.10,151.00,Kidney Disease,-1
+de33a2e4-e480-4702-86a4-55f9e4fccc88,Patient F,77.00,94.00,13.20,101.00,7.30,136.00,Kidney Disease,0
+a5f6c142-95fb-4440-8180-c4de5b0902e0,Patient G,34.00,96.00,1.10,286.00,4.40,146.00,Diabetes,0
+e5c4d1b7-ea1e-4928-b460-c218f545804e,Patient H,18.00,104.00,1.30,114.00,4.50,138.00,Cancer,0
+c5bb164c-906e-4c6f-8ca8-01648fcde67f,Patient I,102.00,111.00,7.30,220.00,5.80,140.00,COPD,0
+51b0f525-56e7-40d9-92f8-688ebd1a26ce,Patient K,27.00,109.00,1.23,106.00,4.10,138.00,COPD,0

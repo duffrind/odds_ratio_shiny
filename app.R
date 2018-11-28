@@ -1,72 +1,89 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(rhandsontable)
 library(ggplot2)
-#library(shinyEvents)
+library(gridExtra)
 
-DF = data.frame(Lab_Test = c('Potassium', 'Sodium', 'Chloride', 'Creatine'),
-                Value = c(-1, -1, -1, -1),
-                Units = c('mmol/L', 'mmol/L', 'mmol/L', 'mg/dL'),
+patients = read.csv('PatientList.csv')
+
+DF = data.frame(Lab_Test = c('BUN', 'Chloride', 'Creatinine', 'Glucose', 'Potassium', 'Sodium'),
+                Value = c(-1, -1, -1, -1, -1, -1),
+                Units = c('mg/dL', 'mmol/L', 'mg/dL', 'mg/dL', 'mmol/L', 'mmol/L'),
                 stringsAsFactors = FALSE)
 
-#disease = c('COPD')
-#test = c('Potassium')
-#interval = c('20')
+cancer_bun <- read.csv('cancer/bun.csv')
+cancer_chloride <- read.csv('cancer/chloride.csv')
+cancer_creatinine <- read.csv('cancer/creatinine.csv')
+cancer_glucose <- read.csv('cancer/glucose.csv')
+cancer_potassium <- read.csv('cancer/potassium.csv')
+cancer_sodium <- read.csv('cancer/sodium.csv')
 
-#disease = 'KidneyDisease'
-#test = 'Potassium'
-#interval = '18'
+copd_bun <- read.csv('copd/bun.csv')
+copd_chloride <- read.csv('copd/chloride.csv')
+copd_creatinine <- read.csv('copd/creatinine.csv')
+copd_glucose <- read.csv('copd/glucose.csv')
+copd_potassium <- read.csv('copd/potassium.csv')
 
-#disease = 'Dementia'
-#test = 'Potassium'
-#interval = '11'
+dementia_bun <- read.csv('dementia/bun.csv')
+dementia_chloride <- read.csv('dementia/chloride.csv')
+dementia_creatinine <- read.csv('dementia/creatinine.csv')
+dementia_glucose <- read.csv('dementia/glucose.csv')
+dementia_potassium <- read.csv('dementia/potassium.csv')
 
-#disease = 'Cancer'
-#test = 'Potassium'
-#interval = '17'
+diabetes_bun <- read.csv('diabetes/bun.csv')
+diabetes_chloride <- read.csv('diabetes/chloride.csv')
+diabetes_glucose <- read.csv('diabetes/glucose.csv')
+diabetes_potassium <- read.csv('diabetes/potassium.csv')
+diabetes_sodium <- read.csv('diabetes/sodium.csv')
 
-#disease = 'Diabetes'
-#test = 'Potassium'
-#interval = '20'
+kidney_bun <- read.csv('kidney/bun.csv')
+kidney_chloride <- read.csv('kidney/chloride.csv')
+kidney_creatinine <- read.csv('kidney/creatinine.csv')
+kidney_glucose <- read.csv('kidney/glucose.csv')
+kidney_potassium <- read.csv('kidney/potassium.csv')
 
-#disease = 'Diabetes'
-#test = 'Glucose'
-#interval = '80'
+plotFunc <- function(x_given, intervals, refBars, test, disease, measurement) {
+  switch(test,
+         'Potassium' = {left <- 3.5; right <- 5.1},
+         'BUN' = {left <- 22; right <- 46},
+         'Chloride' = {left <- 96; right <- 106},
+         'Creatinine' = {left <- 7.5; right <- 15},
+         'Glucose' = {left <- 70; right <- 110},
+         'Sodium' = {left <- 135; right <- 145})
+  intervals$constant = rep(1, length(intervals$mean))
+  point = approx(x = intervals$mean, y = intervals$cc_or, xout = x_given)
+  border_colour = 'black'
+  point_colour = 'black'
+  if (is.na(point$y) | point$y > 1) {
+    point_colour = 'red'
+  }
+  if ((is.na(point$y) | point$y > 1) & (point$x < left | point$x > right)) {
+    border_colour = 'red'
+  } else if (point$y > 1 | (point$x < left | point$x > right)) {
+    border_colour = 'yellow'
+  }
+  p <- ggplot(intervals, aes(mean)) + geom_line(aes(y=cc_or), colour='blue') +
+    geom_line(aes(y=cc_ci_l, color='cc_ci_l'), linetype='dashed', colour='purple') +
+    geom_line(aes(y=cc_ci_r), linetype='dashed', colour='purple') +
+    geom_abline(slope=0, intercept=1) + coord_cartesian(ylim=c(0,6), xlim=c(min(intervals$mean),max(intervals$mean))) +
+    theme_bw() + geom_point(aes(x=point$x, y=point$y), size=5, color=point_colour) +
+    theme(panel.border = element_rect(colour = border_colour, fill=NA, size=5)) +
+    labs(x=paste0(test, ', ', measurement), y='Mortality Odds Ratio', title=paste0(test, ' Odds Ratios +/- 95% C.I. for ', disease))
+  if (refBars) {
+    p <- p + geom_vline(xintercept=left, linetype='longdash') + geom_vline(xintercept=right, linetype='longdash')
+  }
+  return(p)
+}
 
-
-#intervals = c(read.csv(paste0('medical_data/', interval, '_intervals_', test, '_', disease, '.csv')),
-#              read.csv(paste0('medical_data/', interval, '_intervals_', test, '_', disease, '.csv')),
-#              read.csv(paste0('medical_data/', interval, '_intervals_', test, '_', disease, '.csv')),
-#              read.csv(paste0('medical_data/', interval, '_intervals_', test, '_', disease, '.csv')))
-
-# Define UI for application that draws a histogram
 ui <- fluidPage(
-   
-   # Application title
    titlePanel("Patient Odds Ratios"),
    
-   # Sidebar with a slider input for number of bins 
    sidebarLayout(
       sidebarPanel(
-        fileInput("file1", "Choose CSV File",
-                  multiple = FALSE,
-                  accept = c("text/csv",
-                             "text/comma-separated-values,text/plain",
-                             ".csv")),
-         tags$hr(),
-         textInput("patName", "Patient Name"),
+         selectizeInput('patName', 'Patient Name', choices=patients$PatientName, selected = patients$PatientName[1], multiple = FALSE, options = NULL),
          rHandsontableOutput("lab"),
          checkboxInput("refShow",
-                     "Show Reference Ranges?"),
-         selectInput('comorbidity', 'Disease Dropdown', c('Diabetes', 'Kidney Disease', 'Cancer', 'Alzheimers'), selected = NULL, multiple = FALSE,
+                     "Show Reference Ranges?", value=TRUE),
+         selectInput('comorbidity', 'Disease Dropdown', c('Diabetes', 'Kidney Disease', 'Cancer', 'Dementia', 'COPD'), selected = as.character(patients$CC[1]), multiple = FALSE,
                      selectize = TRUE, width = NULL, size = NULL),
          actionButton("makePlots", "Plot!")
       ),
@@ -78,43 +95,69 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  #rhandsontable(DF) %>% hot_col("Lab_Test", readOnly = TRUE) %>% hot_col("Units", readOnly = TRUE)
-  output$lab=renderRHandsontable(rhandsontable(DF,readOnly=FALSE) %>% hot_col("Lab_Test", readOnly = TRUE) %>% hot_col("Units", readOnly = TRUE))
+  labs_df <- DF
+  labs_df$Value <- c(patients$BUN[1], patients$Chloride[1], patients$Creatinine[1], patients$Glucose[1], patients$Potassium[1], patients$Sodium[1])
+  output$lab=renderRHandsontable(rhandsontable(labs_df,readOnly=FALSE) %>% hot_col("Lab_Test", readOnly = TRUE) %>% hot_col("Units", readOnly = TRUE))
   
-  observeEvent(input$makePlots, {doPlot()})
-  
-  doPlot <- eventReactive(input$makePlots, {
-    labs = hot_to_r(input$lab)
-    print(c(input$refShow,input$comorbidity,labs$Value))
+  observeEvent(input$makePlots, {
     output$distPlot <- renderPlot({ 
-      par(mfrow=c(2,2))
-      x    <- faithful[, 2] 
-      bins <- seq(min(x), max(x), length.out = 30)
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
+      labs_df <- hot_to_r(isolate(input$lab))
+      refBars <- FALSE
+      if (isolate(input$refShow)) {
+        refBars <- TRUE
+      }
+      comorb <- isolate(input$comorbidity)
+      if (comorb == 'COPD') {
+        p1 <- plotFunc(labs_df$Value[1], copd_bun, refBars, 'BUN', 'COPD', 'mg/dL')
+        p2 <- plotFunc(labs_df$Value[2], copd_chloride, refBars, 'Chloride', 'COPD', 'mmol/L')
+        p3 <- plotFunc(labs_df$Value[3], copd_creatinine, refBars, 'Creatinine', 'COPD', 'mg/dL')
+        p4 <- plotFunc(labs_df$Value[4], copd_glucose, refBars, 'Glucose', 'COPD', 'mg/dL')
+        p5 <- plotFunc(labs_df$Value[5], copd_potassium, refBars, 'Potassium', 'COPD', 'mmol/L')
+        grid.arrange(p1, p2, p3, p4, p5, ncol=2)
+      } else if (comorb == 'Diabetes') {
+        p1 <- plotFunc(labs_df$Value[1], diabetes_bun, refBars, 'BUN', 'Diabetes', 'mg/dL')
+        p2 <- plotFunc(labs_df$Value[2], diabetes_chloride, refBars, 'Chloride', 'Diabetes', 'mmol/L')
+        p3 <- plotFunc(labs_df$Value[4], diabetes_glucose, refBars, 'Glucose', 'Diabetes', 'mg/dL')
+        p4 <- plotFunc(labs_df$Value[5], diabetes_potassium, refBars, 'Potassium', 'Diabetes', 'mmol/L')
+        p5 <- plotFunc(labs_df$Value[6], diabetes_sodium, refBars, 'Sodium', 'Diabetes', 'mmol/L')
+        grid.arrange(p1, p2, p3, p4, p5, ncol=2)
+      } else if (comorb == 'Kidney Disease') {
+        p1 <- plotFunc(labs_df$Value[1], kidney_bun, refBars, 'BUN', 'Kidney', 'mg/dL')
+        p2 <- plotFunc(labs_df$Value[2], kidney_chloride, refBars, 'Chloride', 'Kidney', 'mmol/L')
+        p3 <- plotFunc(labs_df$Value[3], kidney_creatinine, refBars, 'Creatinine', 'Kidney', 'mg/dL')
+        p4 <- plotFunc(labs_df$Value[4], kidney_glucose, refBars, 'Glucose', 'Kidney', 'mg/dL')
+        p5 <- plotFunc(labs_df$Value[5], kidney_potassium, refBars, 'Potassium', 'Kidney', 'mmol/L')
+        grid.arrange(p1, p2, p3, p4, p5, ncol=2)
+      } else if (comorb == 'Cancer') {
+        p1 <- plotFunc(labs_df$Value[1], cancer_bun, refBars, 'BUN', 'Cancer', 'mg/dL')
+        p2 <- plotFunc(labs_df$Value[2], cancer_chloride, refBars, 'Chloride', 'Cancer', 'mmol/L')
+        p3 <- plotFunc(labs_df$Value[3], cancer_creatinine, refBars, 'Creatinine', 'Cancer', 'mg/dL')
+        p4 <- plotFunc(labs_df$Value[4], cancer_glucose, refBars, 'Glucose', 'Cancer', 'mg/dL')
+        p5 <- plotFunc(labs_df$Value[5], cancer_potassium, refBars, 'Potassium', 'Cancer', 'mmol/L')
+        p6 <- plotFunc(labs_df$Value[6], cancer_sodium, refBars, 'Sodium', 'Cancer', 'mmol/L')
+        grid.arrange(p1, p2, p3, p4, p5, p6, ncol=2)
+      } else if (comorb == 'Dementia') {
+        p1 <- plotFunc(labs_df$Value[1], dementia_bun, refBars, 'BUN', 'Dementia', 'mg/dL')
+        p2 <- plotFunc(labs_df$Value[2], dementia_chloride, refBars, 'Chloride', 'Dementia', 'mmol/L')
+        p3 <- plotFunc(labs_df$Value[3], dementia_creatinine, refBars, 'Creatinine', 'Dementia', 'mg/dL')
+        p4 <- plotFunc(labs_df$Value[4], dementia_glucose, refBars, 'Glucose', 'Dementia', 'mg/dL')
+        p5 <- plotFunc(labs_df$Value[5], dementia_potassium, refBars, 'Potassium', 'Dementia', 'mmol/L')
+        grid.arrange(p1, p2, p3, p4, p5, ncol=2)
+      }
     })
   })
   
-  observeEvent(input$file1, {
-    req(input$file1)
+  observeEvent(input$patName, {
+    req(input$patName)
     
     tryCatch(
       {
-        req(input$file1)
-        file_df <- read.csv(input$file1$datapath, header=FALSE)
-        labs_df <- hot_to_r(input$lab) # DF # (if you want to set all missing to -1)
-          for (i in 1:nrow(file_df)) {
-            switch(as.character(file_df$V1[i]),
-                   'Disease' = updateSelectInput(session, 'comorbidity', selected=as.character(file_df$V2[i])),
-                   'Name' = updateTextInput(session, 'patName', value = as.character(file_df$V2[i])),#output$patName <- as.character(file_df$V2[i]),
-                   'Potassium' = labs_df$Value[1] <- as.numeric(as.character(file_df$V2[i])),
-                   'Sodium' = labs_df$Value[2] <- as.numeric(as.character(file_df$V2[i])),
-                   'Chloride' = labs_df$Value[3] <- as.numeric(as.character(file_df$V2[i])),
-                   'Creatine' = labs_df$Value[4] <- as.numeric(as.character(file_df$V2[i])))}
+        labs_df <- DF
+        index <- match(input$patName, patients$PatientName)
+        labs_df$Value <- c(patients$BUN[index], patients$Chloride[index], patients$Creatinine[index], patients$Glucose[index], patients$Potassium[index], patients$Sodium[index])
         output$lab = renderRHandsontable({rhandsontable(labs_df,readOnly=FALSE) %>% hot_col("Lab_Test", readOnly = TRUE) %>% hot_col("Units", readOnly = TRUE)})
-        
+        updateSelectInput(session, 'comorbidity', selected=as.character(patients$CC[index]))
+        req(input$patName)
       },
       error = function(e) {
         stop(safeError(e))
@@ -123,6 +166,5 @@ server <- function(input, output, session) {
   
 }
 
-# Run the application 
 shinyApp(ui = ui, server = server)
 
