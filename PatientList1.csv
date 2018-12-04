@@ -1,0 +1,11 @@
+Patient ID,PatientName,BUN,Chloride,Creatinine,Glucose,Potassium,Sodium,CC,Outcome
+e806c8d7-2cb9-41ab-a123-f157f824a41c,Patient A,32,110,3.1,137,5.4,140,Kidney,-1
+c91ac91f-621f-49ba-a5cc-aab35582055e,Patient B,44,101,5.3,415,5.7,139,Diabetes,-1
+fddc5a0f-2605-4797-904d-fb7bf9fd1c07,Patient C,21,103,0.8,152,4.7,141,Diabetes,-1
+0e78adee-2f2e-45a9-a8ac-f1e7d9cd9f37,Patient D,35,106,1.2,148,4.9,139,COPD,-1
+e372e420-63fd-4160-90f3-b923551b12e5,Patient E,140,114,3.5,195,5.1,151,Kidney,-1
+de33a2e4-e480-4702-86a4-55f9e4fccc88,Patient F,77,94,13.2,101,7.3,136,Kidney,0
+a5f6c142-95fb-4440-8180-c4de5b0902e0,Patient G,34,96,1.1,286,4.4,146,Diabetes,0
+e5c4d1b7-ea1e-4928-b460-c218f545804e,Patient H,18,104,1.3,114,4.5,138,Cancer,0
+c5bb164c-906e-4c6f-8ca8-01648fcde67f,Patient I,102,111,7.3,220,5.8,140,COPD,0
+51b0f525-56e7-40d9-92f8-688ebd1a26ce,Patient K,27,109,1.23,106,4.1,138,COPD,0
