@@ -76,7 +76,16 @@ plotFunc <- function(x_given, intervals, refBars, test, disease, measurement) {
   if (refBars) {
     p <- p + geom_vline(xintercept=left, linetype='longdash') + geom_vline(xintercept=right, linetype='longdash')
   }
-  return(p)
+  #p <- p + theme(plot.background = element_rect(fill = "#C4E7FF"),
+  #               #panel.background = element_blank(),
+  #               plot.margin = margin(20, 20, 20, 20))
+  #g <- ggplotGrob(p)
+  #bg <- g$grobs[[1]]
+  #round_bg <- roundrectGrob(x=bg$x, y=bg$y, width=bg$width, height=bg$height,
+  #                          r=unit(0.1, "snpc"),
+  #                          just=bg$just, name=bg$name, gp=bg$gp, vp=bg$vp)
+  #g$grobs[[1]] <- round_bg
+  return(p)#g
 }
 
 ui <- fluidPage(
@@ -94,7 +103,13 @@ ui <- fluidPage(
                      selectize = TRUE, width = NULL, size = NULL),
          actionButton("makePlots", "Plot!"),
          hr(),
-         p('Mortality Odds Ratios - Description will go here')
+         #p('Mortality Odds Ratios - Description will go here'),
+         HTML('<style>.rdot {height: 15px;width: 15px;background-color: red;border-radius: 50%;display: inline-block;}.bdot {height: 15px;width: 15px;background-color: black;border-radius: 50%;display: inline-block;}</style>'),
+         HTML('<p><span class="bdot"></span> Mortality Odds below 1</p>'),
+         HTML('<p><span class="rdot"></span> Mortality Odds above 1</p>'),
+         HTML('<p><svg width="15" height="15"><rect width="15" height="15" style="fill:rgb(255,255,255);stroke-width:3;stroke:rgb(0,0,0)" /></svg> Mortality Odds below 1 and within Reference Intervals</p>'),
+         HTML('<p><svg width="15" height="15"><rect width="15" height="15" style="fill:rgb(255,255,255);stroke-width:3;stroke:yellow" /></svg> Mortality Odds above 1 or outside Reference Intervals</p>'),
+         HTML('<p><svg width="15" height="15"><rect width="15" height="15" style="fill:rgb(255,255,255);stroke-width:3;stroke:red" /></svg> Mortality Odds above 1 and outside Reference Intervals</p>')
       ),
       
       mainPanel(
