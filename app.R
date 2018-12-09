@@ -2,6 +2,7 @@ library(shiny)
 library(rhandsontable)
 library(ggplot2)
 library(gridExtra)
+library(grid)
 
 patients = read.csv('PatientList1.csv')
 
@@ -66,8 +67,9 @@ plotFunc <- function(x_given, intervals, refBars, test, disease, measurement) {
   }
   p <- ggplot(intervals, aes(mean)) + geom_line(aes(y=cc_or), colour='blue') +
     geom_line(aes(y=cc_ci_l, color='cc_ci_l'), linetype='dashed', colour='purple') +
+    scale_y_continuous(breaks=seq(0, 10, 1)) +
     geom_line(aes(y=cc_ci_r), linetype='dashed', colour='purple') +
-    geom_abline(slope=0, intercept=1) + coord_cartesian(ylim=c(0,6), xlim=c(min(intervals$mean),max(intervals$mean))) +
+    geom_abline(slope=0, intercept=1, size=1) + coord_cartesian(ylim=c(0,6), xlim=c(min(intervals$mean),max(intervals$mean))) +
     theme_bw() + geom_point(aes(x=point$x, y=point$y), size=5, color=point_colour) +
     theme(panel.border = element_rect(colour = border_colour, fill=NA, size=5)) +
     labs(x=paste0(test, ', ', measurement), y='Mortality Odds Ratio', title=paste0(test, ' Odds Ratios +/- 95% C.I. for ', disease))
@@ -82,13 +84,17 @@ ui <- fluidPage(
    
    sidebarLayout(
       sidebarPanel(
+         #h1('Mortality Odds Ratios'),
+         #hr(),
          selectizeInput('patName', 'Patient Name', choices=patients$PatientName, selected = patients$PatientName[1], multiple = FALSE, options = NULL),
          rHandsontableOutput("lab"),
          checkboxInput("refShow",
                      "Show Reference Ranges?", value=TRUE),
          selectInput('comorbidity', 'Disease Dropdown', c('Diabetes', 'Kidney Disease', 'Cancer', 'Dementia', 'COPD'), selected = as.character(patients$CC[1]), multiple = FALSE,
                      selectize = TRUE, width = NULL, size = NULL),
-         actionButton("makePlots", "Plot!")
+         actionButton("makePlots", "Plot!"),
+         hr(),
+         p('Mortality Odds Ratios - Description will go here')
       ),
       
       mainPanel(
