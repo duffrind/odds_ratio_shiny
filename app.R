@@ -103,6 +103,7 @@ ui <- fluidPage(
                      selectize = TRUE, width = NULL, size = NULL),
          actionButton("makePlots", "Plot!"),
          hr(),
+         h4('Legend:'),
          #p('Mortality Odds Ratios - Description will go here'),
          HTML('<style>.rdot {height: 15px;width: 15px;background-color: red;border-radius: 50%;display: inline-block;}.bdot {height: 15px;width: 15px;background-color: black;border-radius: 50%;display: inline-block;}</style>'),
          HTML('<p><span class="bdot"></span> Mortality Odds below 1</p>'),
