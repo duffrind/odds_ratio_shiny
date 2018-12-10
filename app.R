@@ -101,16 +101,17 @@ ui <- fluidPage(
                      "Show Reference Ranges?", value=TRUE),
          selectInput('comorbidity', 'Disease Dropdown', c('Diabetes', 'Kidney Disease', 'Cancer', 'Dementia', 'COPD'), selected = as.character(patients$CC[1]), multiple = FALSE,
                      selectize = TRUE, width = NULL, size = NULL),
+         hr(),
          actionButton("makePlots", "Plot!"),
          hr(),
-         h4('Legend:'),
+         h5('Legend:'),
          #p('Mortality Odds Ratios - Description will go here'),
-         HTML('<style>.rdot {height: 15px;width: 15px;background-color: red;border-radius: 50%;display: inline-block;}.bdot {height: 15px;width: 15px;background-color: black;border-radius: 50%;display: inline-block;}</style>'),
-         HTML('<p><span class="bdot"></span> Mortality Odds below 1</p>'),
-         HTML('<p><span class="rdot"></span> Mortality Odds above 1</p>'),
-         HTML('<p><svg width="15" height="15"><rect width="15" height="15" style="fill:rgb(255,255,255);stroke-width:3;stroke:rgb(0,0,0)" /></svg> Mortality Odds below 1 and within Reference Intervals</p>'),
-         HTML('<p><svg width="15" height="15"><rect width="15" height="15" style="fill:rgb(255,255,255);stroke-width:3;stroke:yellow" /></svg> Mortality Odds above 1 or outside Reference Intervals</p>'),
-         HTML('<p><svg width="15" height="15"><rect width="15" height="15" style="fill:rgb(255,255,255);stroke-width:3;stroke:red" /></svg> Mortality Odds above 1 and outside Reference Intervals</p>')
+         HTML('<style>.rdot {height: 12px;width: 12px;background-color: red;border-radius: 50%;display: inline-block;}.bdot {height: 12px;width: 12px;background-color: black;border-radius: 50%;display: inline-block;}</style>'),
+         HTML('<p><small><span class="bdot"></span> Mortality Odds below 1</small></p>'),
+         HTML('<p><small><span class="rdot"></span> Mortality Odds above 1</small></p>'),
+         HTML('<p><small><svg width="12" height="12"><rect width="12" height="12" style="fill:rgb(255,255,255);stroke-width:3;stroke:rgb(0,0,0)" /></svg> Mortality Odds below 1 and within Reference Intervals</small></p>'),
+         HTML('<p><small><svg width="12" height="12"><rect width="12" height="12" style="fill:rgb(255,255,255);stroke-width:3;stroke:yellow" /></svg> Mortality Odds above 1 or outside Reference Intervals</small></p>'),
+         HTML('<p><small><svg width="12" height="12"><rect width="12" height="12" style="fill:rgb(255,255,255);stroke-width:3;stroke:red" /></svg> Mortality Odds above 1 and outside Reference Intervals</small></p>')
       ),
       
       mainPanel(
