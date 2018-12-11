@@ -72,6 +72,7 @@ plotFunc <- function(x_given, intervals, refBars, test, disease, measurement) {
     geom_abline(slope=0, intercept=1, size=1) + coord_cartesian(ylim=c(0,6), xlim=c(min(intervals$mean),max(intervals$mean))) +
     theme_bw() + geom_point(aes(x=point$x, y=point$y), size=5, color=point_colour) +
     theme(panel.border = element_rect(colour = border_colour, fill=NA, size=5)) +
+    geom_rect(aes(xmin=left, xmax=right, ymin=-Inf, ymax=Inf), alpha=.01) +
     labs(x=paste0(test, ', ', measurement), y='Mortality Odds Ratio', title=paste0(test, ' Odds Ratios +/- 95% C.I. for ', disease))
   if (refBars) {
     p <- p + geom_vline(xintercept=left, linetype='longdash') + geom_vline(xintercept=right, linetype='longdash')
@@ -111,7 +112,8 @@ ui <- fluidPage(
          HTML('<p><small><span class="rdot"></span> Mortality Odds above 1</small></p>'),
          HTML('<p><small><svg width="12" height="12"><rect width="12" height="12" style="fill:rgb(255,255,255);stroke-width:3;stroke:rgb(0,0,0)" /></svg> Mortality Odds below 1 and within Reference Intervals</small></p>'),
          HTML('<p><small><svg width="12" height="12"><rect width="12" height="12" style="fill:rgb(255,255,255);stroke-width:3;stroke:yellow" /></svg> Mortality Odds above 1 or outside Reference Intervals</small></p>'),
-         HTML('<p><small><svg width="12" height="12"><rect width="12" height="12" style="fill:rgb(255,255,255);stroke-width:3;stroke:red" /></svg> Mortality Odds above 1 and outside Reference Intervals</small></p>')
+         HTML('<p><small><svg width="12" height="12"><rect width="12" height="12" style="fill:rgb(255,255,255);stroke-width:3;stroke:red" /></svg> Mortality Odds above 1 and outside Reference Intervals</small></p>'),
+         HTML('<p><small><svg width="12" height="12"><rect width="12" height="12" style="fill:rgb(175,175,175);stroke-width:3;stroke:rgb(175,175,175)" /></svg> Shading inside of the Reference Interval</small></p>')
       ),
       
       mainPanel(
