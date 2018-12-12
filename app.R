@@ -42,7 +42,7 @@ kidney_creatinine <- read.csv('kidney/creatinine.csv')
 kidney_glucose <- read.csv('kidney/glucose.csv')
 kidney_potassium <- read.csv('kidney/potassium.csv')
 
-plotFunc <- function(x_given, intervals, refBars, test, disease, measurement) {
+plotFunc <- function(x_given, intervals, refBars, test, disease, measurement, bin_size) {
   switch(test,
          'Potassium' = {left <- 3.5; right <- 5.1},
          'BUN' = {left <- 7; right <- 20},#{left <- 22; right <- 46},
@@ -65,6 +65,11 @@ plotFunc <- function(x_given, intervals, refBars, test, disease, measurement) {
   } else if (is.na(point$y) | point$y > 1 | (point$x < left | point$x > right)) {
     border_colour = 'yellow'
   }
+  if (refBars) {
+    intervals['plot_n'] <- intervals$n / max(intervals$n) * 5
+    #width <- intervals$plot_n / sum(intervals$plot_n)
+    #loc <- cumsum(width) - width/2
+  }
   p <- ggplot(intervals, aes(mean)) + geom_line(aes(y=cc_or), colour='blue') +
     geom_line(aes(y=cc_ci_l, color='cc_ci_l'), linetype='dashed', colour='purple') +
     scale_y_continuous(breaks=seq(0, 10, 1)) +
@@ -72,8 +77,12 @@ plotFunc <- function(x_given, intervals, refBars, test, disease, measurement) {
     geom_abline(slope=0, intercept=1, size=1) + coord_cartesian(ylim=c(0,6), xlim=c(min(intervals$mean),max(intervals$mean))) +
     theme_bw() + geom_point(aes(x=point$x, y=point$y), size=5, color=point_colour) +
     theme(panel.border = element_rect(colour = border_colour, fill=NA, size=5)) +
-    geom_rect(aes(xmin=left, xmax=right, ymin=-Inf, ymax=Inf), alpha=.01) +
+    geom_rect(aes(xmin=left, xmax=right, ymin=-Inf, ymax=Inf), alpha=.01) + 
     labs(x=paste0(test, ', ', measurement), y='Mortality Odds Ratio', title=paste0(test, ' Odds Ratios +/- 95% C.I. for ', disease))
+  if (bin_size) {
+    #p <- p + geom_bar(stat='identity', aes(y=plot_n), colour='lightblue', fill='lightblue', alpha=0.5, width=width) #+ scale_x_continuous(breaks = loc)
+    p <- p + geom_area(aes(y=plot_n), colour='lightblue', fill='lightblue', alpha=0.1)
+  }
   if (refBars) {
     p <- p + geom_vline(xintercept=left, linetype='longdash') + geom_vline(xintercept=right, linetype='longdash')
   }
@@ -100,6 +109,8 @@ ui <- fluidPage(
          rHandsontableOutput("lab"),
          checkboxInput("refShow",
                      "Show Reference Ranges?", value=TRUE),
+         checkboxInput("bin_size",
+                       "Show Bin Sizes?", value=FALSE),
          selectInput('comorbidity', 'Disease Dropdown', c('Diabetes', 'Kidney Disease', 'Cancer', 'Dementia', 'COPD'), selected = as.character(patients$CC[1]), multiple = FALSE,
                      selectize = TRUE, width = NULL, size = NULL),
          hr(),
@@ -134,42 +145,46 @@ server <- function(input, output, session) {
       if (isolate(input$refShow)) {
         refBars <- TRUE
       }
+      showBin <- FALSE
+      if (isolate(input$bin_size)) {
+        showBin <- TRUE
+      }
       comorb <- isolate(input$comorbidity)
       if (comorb == 'COPD') {
-        p1 <- plotFunc(labs_df$Value[1], copd_bun, refBars, 'BUN', 'COPD', 'mg/dL')
-        p2 <- plotFunc(labs_df$Value[2], copd_chloride, refBars, 'Chloride', 'COPD', 'mmol/L')
-        p3 <- plotFunc(labs_df$Value[3], copd_creatinine, refBars, 'Creatinine', 'COPD', 'mg/dL')
-        #p4 <- plotFunc(labs_df$Value[4], copd_glucose, refBars, 'Glucose', 'COPD', 'mg/dL')
-        p5 <- plotFunc(labs_df$Value[5], copd_potassium, refBars, 'Potassium', 'COPD', 'mmol/L')
+        p1 <- plotFunc(labs_df$Value[1], copd_bun, refBars, 'BUN', 'COPD', 'mg/dL', showBin)
+        p2 <- plotFunc(labs_df$Value[2], copd_chloride, refBars, 'Chloride', 'COPD', 'mmol/L', showBin)
+        p3 <- plotFunc(labs_df$Value[3], copd_creatinine, refBars, 'Creatinine', 'COPD', 'mg/dL', showBin)
+        #p4 <- plotFunc(labs_df$Value[4], copd_glucose, refBars, 'Glucose', 'COPD', 'mg/dL', showBin)
+        p5 <- plotFunc(labs_df$Value[5], copd_potassium, refBars, 'Potassium', 'COPD', 'mmol/L', showBin)
         grid.arrange(p1, p2, p3, p5, ncol=2)
       } else if (comorb == 'Diabetes') {
-        p1 <- plotFunc(labs_df$Value[1], diabetes_bun, refBars, 'BUN', 'Diabetes', 'mg/dL')
-        p2 <- plotFunc(labs_df$Value[2], diabetes_chloride, refBars, 'Chloride', 'Diabetes', 'mmol/L')
-        p3 <- plotFunc(labs_df$Value[4], diabetes_glucose, refBars, 'Glucose', 'Diabetes', 'mg/dL')
-        p4 <- plotFunc(labs_df$Value[5], diabetes_potassium, refBars, 'Potassium', 'Diabetes', 'mmol/L')
-        #p5 <- plotFunc(labs_df$Value[6], diabetes_sodium, refBars, 'Sodium', 'Diabetes', 'mmol/L')
+        p1 <- plotFunc(labs_df$Value[1], diabetes_bun, refBars, 'BUN', 'Diabetes', 'mg/dL', showBin)
+        p2 <- plotFunc(labs_df$Value[2], diabetes_chloride, refBars, 'Chloride', 'Diabetes', 'mmol/L', showBin)
+        p3 <- plotFunc(labs_df$Value[4], diabetes_glucose, refBars, 'Glucose', 'Diabetes', 'mg/dL', showBin)
+        p4 <- plotFunc(labs_df$Value[5], diabetes_potassium, refBars, 'Potassium', 'Diabetes', 'mmol/L', showBin)
+        #p5 <- plotFunc(labs_df$Value[6], diabetes_sodium, refBars, 'Sodium', 'Diabetes', 'mmol/L', showBin)
         grid.arrange(p1, p2, p3, p4, ncol=2)
       } else if (comorb == 'Kidney Disease') {
-        p1 <- plotFunc(labs_df$Value[1], kidney_bun, refBars, 'BUN', 'Kidney', 'mg/dL')
-        p2 <- plotFunc(labs_df$Value[2], kidney_chloride, refBars, 'Chloride', 'Kidney', 'mmol/L')
-        p3 <- plotFunc(labs_df$Value[3], kidney_creatinine, refBars, 'Creatinine', 'Kidney', 'mg/dL')
-        #p4 <- plotFunc(labs_df$Value[4], kidney_glucose, refBars, 'Glucose', 'Kidney', 'mg/dL')
-        p5 <- plotFunc(labs_df$Value[5], kidney_potassium, refBars, 'Potassium', 'Kidney', 'mmol/L')
+        p1 <- plotFunc(labs_df$Value[1], kidney_bun, refBars, 'BUN', 'Kidney', 'mg/dL', showBin)
+        p2 <- plotFunc(labs_df$Value[2], kidney_chloride, refBars, 'Chloride', 'Kidney', 'mmol/L', showBin)
+        p3 <- plotFunc(labs_df$Value[3], kidney_creatinine, refBars, 'Creatinine', 'Kidney', 'mg/dL', showBin)
+        #p4 <- plotFunc(labs_df$Value[4], kidney_glucose, refBars, 'Glucose', 'Kidney', 'mg/dL', showBin)
+        p5 <- plotFunc(labs_df$Value[5], kidney_potassium, refBars, 'Potassium', 'Kidney', 'mmol/L', showBin)
         grid.arrange(p1, p2, p3, p5, ncol=2)
       } else if (comorb == 'Cancer') {
-        p1 <- plotFunc(labs_df$Value[1], cancer_bun, refBars, 'BUN', 'Cancer', 'mg/dL')
-        p2 <- plotFunc(labs_df$Value[2], cancer_chloride, refBars, 'Chloride', 'Cancer', 'mmol/L')
-        p3 <- plotFunc(labs_df$Value[3], cancer_creatinine, refBars, 'Creatinine', 'Cancer', 'mg/dL')
-        #p4 <- plotFunc(labs_df$Value[4], cancer_glucose, refBars, 'Glucose', 'Cancer', 'mg/dL')
-        p5 <- plotFunc(labs_df$Value[5], cancer_potassium, refBars, 'Potassium', 'Cancer', 'mmol/L')
-        #p6 <- plotFunc(labs_df$Value[6], cancer_sodium, refBars, 'Sodium', 'Cancer', 'mmol/L')
+        p1 <- plotFunc(labs_df$Value[1], cancer_bun, refBars, 'BUN', 'Cancer', 'mg/dL', showBin)
+        p2 <- plotFunc(labs_df$Value[2], cancer_chloride, refBars, 'Chloride', 'Cancer', 'mmol/L', showBin)
+        p3 <- plotFunc(labs_df$Value[3], cancer_creatinine, refBars, 'Creatinine', 'Cancer', 'mg/dL', showBin)
+        #p4 <- plotFunc(labs_df$Value[4], cancer_glucose, refBars, 'Glucose', 'Cancer', 'mg/dL', showBin)
+        p5 <- plotFunc(labs_df$Value[5], cancer_potassium, refBars, 'Potassium', 'Cancer', 'mmol/L', showBin)
+        #p6 <- plotFunc(labs_df$Value[6], cancer_sodium, refBars, 'Sodium', 'Cancer', 'mmol/L', showBin)
         grid.arrange(p1, p2, p3, p5, ncol=2)
       } else if (comorb == 'Dementia') {
-        p1 <- plotFunc(labs_df$Value[1], dementia_bun, refBars, 'BUN', 'Dementia', 'mg/dL')
-        p2 <- plotFunc(labs_df$Value[2], dementia_chloride, refBars, 'Chloride', 'Dementia', 'mmol/L')
-        p3 <- plotFunc(labs_df$Value[3], dementia_creatinine, refBars, 'Creatinine', 'Dementia', 'mg/dL')
-        #p4 <- plotFunc(labs_df$Value[4], dementia_glucose, refBars, 'Glucose', 'Dementia', 'mg/dL')
-        p5 <- plotFunc(labs_df$Value[5], dementia_potassium, refBars, 'Potassium', 'Dementia', 'mmol/L')
+        p1 <- plotFunc(labs_df$Value[1], dementia_bun, refBars, 'BUN', 'Dementia', 'mg/dL', showBin)
+        p2 <- plotFunc(labs_df$Value[2], dementia_chloride, refBars, 'Chloride', 'Dementia', 'mmol/L', showBin)
+        p3 <- plotFunc(labs_df$Value[3], dementia_creatinine, refBars, 'Creatinine', 'Dementia', 'mg/dL', showBin)
+        #p4 <- plotFunc(labs_df$Value[4], dementia_glucose, refBars, 'Glucose', 'Dementia', 'mg/dL', showBin)
+        p5 <- plotFunc(labs_df$Value[5], dementia_potassium, refBars, 'Potassium', 'Dementia', 'mmol/L', showBin)
         grid.arrange(p1, p2, p3, p5, ncol=2)
       }
     })
